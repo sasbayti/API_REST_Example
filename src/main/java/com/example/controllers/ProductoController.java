@@ -224,6 +224,7 @@ public class ProductoController {
 
         return responseEntity;
     }
+    @Transactional
     @DeleteMapping("/{id}")
     public ResponseEntity<String> eliminaProducto(@PathVariable(name = "id") Integer id){
         ResponseEntity<String> responseEntity = null;
@@ -233,16 +234,41 @@ public class ProductoController {
         try {
             if (producto != null) {
             String mensaje = "El producto se ha borrado correctamente";
-            productoService.delete(productoService.findById(id));
+            productoService.delete(producto);
             responseEntity = new ResponseEntity<String>(mensaje, HttpStatus.OK);
         } else{
-            responseEntity = new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            responseEntity = new ResponseEntity<String>("No existe el producto",HttpStatus.NO_CONTENT);
         }
-    } catch (Exception e) {
+    } catch (DataAccessException e) {
+           e.getMostSpecificCause();
             String errorGrave = "Error grave";
             responseEntity = new ResponseEntity<String>(errorGrave, HttpStatus.INTERNAL_SERVER_ERROR);
             
         }
+        return responseEntity;
+    }
+    // La forma del profesor
+    @DeleteMapping("/{id}")
+    @Transactional
+    public ResponseEntity<String> delete(@PathVariable(name = "id") Integer id){
+        ResponseEntity<String> responseEntity = null;
+        
+        try {
+            // Recuperamos el producto
+            
+            Producto producto = productoService.findById(id);
+            if(producto != null){
+            productoService.delete(producto);
+            responseEntity = new ResponseEntity<String>("Borrado exitosamente", HttpStatus.OK);
+            }
+            else{
+                responseEntity = new ResponseEntity<String>("No se ha encontrado el producto", HttpStatus.NOT_FOUND);  
+            }
+        } catch (DataAccessException e) {
+            e.getMostSpecificCause();
+            responseEntity = new ResponseEntity<String>("Error Fatal", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
         return responseEntity;
     }
 
