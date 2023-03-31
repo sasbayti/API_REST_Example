@@ -1,5 +1,6 @@
 package com.example.controllers;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,7 +26,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.example.entities.FileUploadUtil;
 import com.example.entities.Producto;
 import com.example.services.ProductoService;
 
@@ -38,6 +41,8 @@ public class ProductoController {
     @Autowired
     private ProductoService productoService;
 
+    @Autowired
+    private FileUploadUtil fileUploadUtil;
     // Quiero que en la respuest avaya el producto pero tambien el estado en el que
     // me la devuelve
     /**
@@ -119,14 +124,23 @@ public class ProductoController {
 
     }
 
+     // Guardar (Persistir), un producto, con su presentacion en la base de datos
+    // Para probarlo con POSTMAN: Body -> form-data -> producto -> CONTENT TYPE ->
+    // application/json
+    // no se puede dejar el content type en Auto, porque de lo contrario asume
+    // application/octet-stream
+    // y genera una exception MediaTypeNotSupported
     /**
      * Persiste un producto en la base de datos
+     * @throws IOException
      * 
      */
-    @PostMapping // Va a recibir los datos del formulario por eso postMapping,
+    @PostMapping(consumes = "multipart/form-data") // Va a recibir los datos del formulario por eso postMapping,
                  // con el verbo post sabe que lo que quiere es eso
     @Transactional
-    public ResponseEntity<Map<String, Object>> insert(@Valid @RequestBody Producto producto, BindingResult result) {
+    public ResponseEntity<Map<String, Object>> insert(@Valid @RequestBody Producto producto, 
+                                                    BindingResult result,
+                                                     @RequestParam(name = "file") MultipartFile file) throws IOException {
         // Para que valide lo que llega
 
         Map<String, Object> responseAsMap = new HashMap<>();
@@ -148,6 +162,12 @@ public class ProductoController {
         }
 
         // Si no hay errores, entonces persistimos el producto.
+        // COmprobando previamente si nos han enviado una imagen o un archivo
+        
+        if(!file.isEmpty()){
+            String fileCode = fileUploadUtil.saveFile(file.getOriginalFilename(), file);
+            producto.setImagenProducto(fileCode + "-" + file.getOriginalFilename());
+        }
         Producto productoDB = productoService.save(producto);
         try {
             if (productoDB != null) { // Aqui estoy haciendo la validacion de si se ha guardado
@@ -248,29 +268,29 @@ public class ProductoController {
         return responseEntity;
     }
     // La forma del profesor
-    @DeleteMapping("/{id}")
-    @Transactional
-    public ResponseEntity<String> delete(@PathVariable(name = "id") Integer id){
-        ResponseEntity<String> responseEntity = null;
+    // @DeleteMapping("/{id}")
+    // @Transactional
+    // public ResponseEntity<String> delete(@PathVariable(name = "id") Integer id){
+    //     ResponseEntity<String> responseEntity = null;
         
-        try {
-            // Recuperamos el producto
+    //     try {
+    //         // Recuperamos el producto
             
-            Producto producto = productoService.findById(id);
-            if(producto != null){
-            productoService.delete(producto);
-            responseEntity = new ResponseEntity<String>("Borrado exitosamente", HttpStatus.OK);
-            }
-            else{
-                responseEntity = new ResponseEntity<String>("No se ha encontrado el producto", HttpStatus.NOT_FOUND);  
-            }
-        } catch (DataAccessException e) {
-            e.getMostSpecificCause();
-            responseEntity = new ResponseEntity<String>("Error Fatal", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    //         Producto producto = productoService.findById(id);
+    //         if(producto != null){
+    //         productoService.delete(producto);
+    //         responseEntity = new ResponseEntity<String>("Borrado exitosamente", HttpStatus.OK);
+    //         }
+    //         else{
+    //             responseEntity = new ResponseEntity<String>("No se ha encontrado el producto", HttpStatus.NOT_FOUND);  
+    //         }
+    //     } catch (DataAccessException e) {
+    //         e.getMostSpecificCause();
+    //         responseEntity = new ResponseEntity<String>("Error Fatal", HttpStatus.INTERNAL_SERVER_ERROR);
+    //     }
 
-        return responseEntity;
-    }
+    //     return responseEntity;
+    // }
 
     /**
      * El metodo siguiente es de ejemplo para entender el formato de JSON,

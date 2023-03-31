@@ -12,6 +12,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -35,6 +36,9 @@ public class Producto implements Serializable {
     @Size(min = 4, max = 25, message = "El nombre tiene que estar entre 4 y 25 caracteres")
     private String nombre;
 
+    @NotNull
+    private String imagenProducto;
+
     @Size(max = 255, message = "La descripción no puede superar los 255 caracteres")
     private String descripcion;
 
@@ -46,5 +50,6 @@ public class Producto implements Serializable {
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     private Presentacion presentacion;
+
 
 }
