@@ -7,12 +7,15 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
@@ -31,13 +34,22 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.example.entities.FileUploadUtil;
 import com.example.entities.Producto;
+import com.example.model.FileUploadResponse;
 import com.example.services.ProductoService;
+import com.example.utilities.FileDownloadUtil;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/productos")
+@RequiredArgsConstructor
 public class ProductoController {
+    // Tambien se puede inyectar por constructor
+    private final FileDownloadUtil fileDownloadUtil;
+   
+   /* @Autowired
+    private FileDownloadUtil fileDownloadUtil; */
 
     @Autowired
     private ProductoService productoService;
@@ -169,6 +181,17 @@ public class ProductoController {
         if(!file.isEmpty()){
             String fileCode = fileUploadUtil.saveFile(file.getOriginalFilename(), file);
             producto.setImagenProducto(fileCode + "-" + file.getOriginalFilename());
+            
+            // Devolver informacion respecto al file recibido
+
+            FileUploadResponse fileUploadResponse = FileUploadResponse.builder()
+                                                    .fileName(fileCode + "-" + file.getOriginalFilename())
+                                                    .downloadURI("/productos/downloadFile/" + fileCode + "-" 
+                                                            + file.getOriginalFilename())
+                                                    .size(file.getSize())
+                                                    .build();
+
+            responseAsMap.put("info de la imagen: ", fileUploadResponse);
         }
         Producto productoDB = productoService.save(producto);
         try {
@@ -293,6 +316,36 @@ public class ProductoController {
 
     //     return responseEntity;
     // }
+
+    // Metodo que va a hacer uso de la clase fildeDownloadUtil
+       /**
+     *  Implementa filedownnload end point API 
+     **/    
+    @GetMapping("/downloadFile/{fileCode}")
+    public ResponseEntity<?> downloadFile(@PathVariable(name = "fileCode") String fileCode) { // Devuelve un generico de cualquier cosa
+
+        Resource resource = null; // EL objetivo es que me devuelva un recurso
+
+        try {
+            resource = fileDownloadUtil.getFileAsResource(fileCode);
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError().build(); // Otra manera de devolver responseEntity
+        }
+
+        if (resource == null) {
+            return new ResponseEntity<>("File not found ", HttpStatus.NOT_FOUND);
+        }
+
+        String contentType = "application/octet-stream";
+        String headerValue = "attachment; filename=\"" + resource.getFilename() + "\"";
+
+        return ResponseEntity.ok()
+        .contentType(MediaType.parseMediaType(contentType)) //Hay que especificarle el tipo contenttype, viene de arriva
+        .header(HttpHeaders.CONTENT_DISPOSITION, headerValue) // En la cabecera te digo que te mando un archivo como atachment
+        .body(resource);
+
+        // TOdo lo que es imagen o hipertexto va con el get
+    }
 
     /**
      * El metodo siguiente es de ejemplo para entender el formato de JSON,
