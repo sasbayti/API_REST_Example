@@ -156,7 +156,7 @@ public class ProductoController {
     @Transactional
     public ResponseEntity<Map<String, Object>> insert(@Valid @RequestPart(name = "producto") Producto producto,
                                                      BindingResult result,
-                                                     @RequestPart(name = "file") MultipartFile file) throws IOException {
+                                                     @RequestPart(name = "file", required = false) MultipartFile file) throws IOException {
         // Para que valide lo que llega
 
         Map<String, Object> responseAsMap = new HashMap<>();
