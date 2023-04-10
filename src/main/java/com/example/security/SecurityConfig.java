@@ -37,10 +37,12 @@ public class SecurityConfig {
         return http.build();
     }
     // para crear usuarios y cifrar la contraseña
-  /*  public static void main(String[] args) {
-    
-    System.out.println("La contraseña es: " + passwordEncoder().encode("123456"));
-   } 
-   */
+ /*   public static void main(String[] args) {
+
+    // Ya no hace falta static si hago new
+    System.out.println("La contraseña es: " 
+    + new SecurityConfig().passwordEncoder().encode("Temp2023$$"));
+   }  */
+  
 }
  
