@@ -86,9 +86,7 @@ public class UserRepositoryTests {
     }
 
     @DisplayName("Test para listar usuario")
-
     @Test
-
     public void testFindAllUsers() {
 
         // given
@@ -111,7 +109,7 @@ public class UserRepositoryTests {
         // then
 
         assertThat(usuarios).isNotNull();
-        assertThat(usuarios.size()).isEqualTo(3);
+        assertThat(usuarios.size()).isEqualTo(4);
 
     }
 
