@@ -1,5 +1,12 @@
 package com.example.services;
 
+import static org.assertj.core.api.Assertions.assertThat;
+// Para seguir el enfoque de BDD con Mockito
+import static org.mockito.BDDMockito.given;
+
+import java.util.Collections;
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,15 +21,6 @@ import com.example.dao.PresentacionDao;
 import com.example.dao.ProductoDao;
 import com.example.entities.Presentacion;
 import com.example.entities.Producto;
-import com.mysql.cj.x.protobuf.MysqlxCrud.Collection;
-
-// Para seguir el enfoque de BDD con Mockito
-import static org.mockito.BDDMockito.given;
-
-import java.util.Collections;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)
 @AutoConfigureTestDatabase(replace = Replace.NONE)
@@ -34,17 +32,18 @@ public class ProductoServiceTests {
     @Mock
     private PresentacionDao presentacionDao;
 
-    // Ponemos la implementacion porque cuando se simula aalgo se pone la clase
- @InjectMocks   
- private ProductoServiceImpl productoService;
+    // Ponemos la implementacion porque cuando se simula algo se pone la clase
+    @InjectMocks
+    private ProductoServiceImpl productoService;
 
- private Producto producto;
- @BeforeEach
- void setUp(){
-    Presentacion presentacion = Presentacion.builder().descripcion(null)
-    .nombre("unidades").build();
+    private Producto producto;
 
-    producto = Producto.builder().id(20L)
+    @BeforeEach
+    void setUp() {
+        Presentacion presentacion = Presentacion.builder().descripcion(null)
+                .nombre("unidades").build();
+
+        producto = Producto.builder().id(20L)
                 .nombre("Google Pixel 7")
                 .descripcion("Telefono de google")
                 .precio(800.0)
@@ -53,25 +52,26 @@ public class ProductoServiceTests {
                 .presentacion(presentacion)
                 .build();
     }
- @Test
- @DisplayName("Test de servicio para persistir un producto")
- public void testSaveProducto(){
 
-    //given
+    @Test
+    @DisplayName("Test de servicio para persistir un producto")
+    public void testSaveProducto() {
 
-    given(productoDao.save(producto)).willReturn(producto);
+        // given
 
-    // when
+        given(productoDao.save(producto)).willReturn(producto);
 
-    Producto productoSaved = productoService.save(producto);
+        // when
 
-    // Then
-    assertThat(productoSaved).isNotNull();
+        Producto productoSaved = productoService.save(producto);
+
+        // Then
+        assertThat(productoSaved).isNotNull();
     }
 
     @DisplayName("Recupera una lista vacia de productos")
     @Test
-    public void testEmptyProductList(){
+    public void testEmptyProductList() {
 
         // given
         given(productoDao.findAll()).willReturn(Collections.emptyList());
@@ -79,7 +79,7 @@ public class ProductoServiceTests {
         // When
         List<Producto> productos = productoDao.findAll();
 
-        // then 
+        // then
         assertThat(productos).isEmpty();
     }
 }
